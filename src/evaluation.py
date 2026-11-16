@@ -3,6 +3,7 @@
 import csv
 import re
 from collections import defaultdict
+from collections.abc import Sequence
 from pathlib import Path
 from statistics import mean
 
@@ -14,6 +15,14 @@ from .features import extract_features
 RECORDING_NAME = re.compile(r"(?:(normal|anomaly)_)?(id_\d{2})_.+")
 
 
+def auc_metrics(
+    labels: Sequence[int], scores: Sequence[float], max_fpr: float
+) -> tuple[float, float]:
+    return float(roc_auc_score(labels, scores)), float(
+        roc_auc_score(labels, scores, max_fpr=max_fpr)
+    )
+
+
 def report_metrics(scores_by_id: dict[str, list[tuple[int, float]]], max_fpr: float) -> None:
     aucs = []
     partial_aucs = []
@@ -22,8 +31,7 @@ def report_metrics(scores_by_id: dict[str, list[tuple[int, float]]], max_fpr: fl
         if len(set(labels)) < 2:
             print(f"{machine_id} needs both normal and anomalous recordings for AUC.")
             continue
-        auc = roc_auc_score(labels, scores)
-        partial_auc = roc_auc_score(labels, scores, max_fpr=max_fpr)
+        auc, partial_auc = auc_metrics(labels, scores, max_fpr)
         aucs.append(auc)
         partial_aucs.append(partial_auc)
         print(f"{machine_id}  AUC {auc:.6f}  pAUC {partial_auc:.6f}")

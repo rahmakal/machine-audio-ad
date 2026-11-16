@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101114">
+  <title>Acoustic Monitor</title>
+  <link rel="stylesheet" href="/static/dashboard.css">
+  <script src="/static/dashboard.js" type="module"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="/" aria-label="Acoustic Monitor home">
+        <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
+        Acoustic Monitor
+      </a>
+      <nav aria-label="Dashboard views">
+        <button type="button" class="nav-button selected" data-view="monitor" aria-pressed="true">Monitor</button>
+        <button type="button" class="nav-button" data-view="evaluation" aria-pressed="false">Evaluation</button>
+      </nav>
+      <span class="model-status" id="model-status"><i></i><span id="checkpoint-name">Connecting</span></span>
+    </div>
+  </header>
+
+  <main class="shell">
+    <section class="hero" aria-labelledby="page-title">
+      <img src="/static/workbench.webp" alt="" class="hero-photo">
+      <div class="hero-copy">
+        <p class="eyebrow"><span class="accent-dot"></span> SIMULATED INSPECTION LINE</p>
+        <h1 id="page-title">Machine sound monitor</h1>
+        <p>Listen to real ToyCar recordings and see which sounds would trigger an inspection alert.</p>
+      </div>
+    </section>
+
+    <section class="stats" aria-label="ToyCar test set overview">
+      <div class="stat"><span>Test recordings</span><strong id="recording-count">—</strong></div>
+      <div class="stat"><span>Machine IDs</span><strong id="machine-count">—</strong></div>
+      <div class="stat"><span>Mean ROC AUC</span><strong id="mean-auc">—</strong></div>
+      <div class="stat"><span>Mean partial AUC</span><strong id="mean-pauc">—</strong></div>
+    </section>
+    <p id="page-error" class="notice error" role="alert" hidden></p>
+
+    <section id="monitor-view" aria-labelledby="monitor-heading">
+      <div class="section-heading">
+        <h2 id="monitor-heading">Station monitor</h2>
+        <button type="button" id="replay" class="button secondary" disabled><span aria-hidden="true">▷</span> Replay shift</button>
+      </div>
+      <div class="monitor-grid">
+        <article class="panel signal-panel">
+          <div class="panel-heading">
+            <h3>Recording</h3>
+            <span class="caption mono" id="clip-count"></span>
+          </div>
+          <div class="fields">
+            <label>Machine ID<select id="machine" disabled></select></label>
+            <label>Condition<select id="condition" disabled>
+              <option value="all">All recordings</option>
+              <option value="normal">Known normal</option>
+              <option value="anomaly">Known anomaly</option>
+            </select></label>
+            <label>Take<select id="recording" disabled></select></label>
+          </div>
+          <div class="signal">
+            <div class="signal-heading">
+              <span class="mono" id="filename">Select a recording</span>
+              <div class="segments" aria-label="Signal view">
+                <button type="button" id="waveform-view" class="selected" aria-pressed="true">Waveform</button>
+                <button type="button" id="error-view" aria-pressed="false" disabled>Error trace</button>
+              </div>
+            </div>
+            <canvas id="signal-chart" role="img" aria-label="Recording waveform"></canvas>
+            <div class="signal-axis mono"><span id="signal-start">0.0 s</span><span id="signal-detail"></span><span id="signal-end">—</span></div>
+            <audio id="player" controls preload="metadata" aria-label="Play selected recording"></audio>
+          </div>
+          <div class="inspect-actions">
+            <span class="caption" id="recording-meta" aria-live="polite">Waiting for recordings</span>
+            <button type="button" id="inspect" class="button primary" disabled>Run inspection <span aria-hidden="true">↗</span></button>
+          </div>
+          <p id="inspection-message" class="notice" aria-live="polite" hidden></p>
+        </article>
+
+        <article class="panel result-panel">
+          <div class="panel-heading">
+            <h3>Anomaly score</h3>
+            <span id="decision" class="status idle" role="status">Waiting</span>
+          </div>
+          <div class="score-value mono" id="score">—</div>
+          <p class="caption score-copy">Average reconstruction error for this recording. Higher scores indicate a more unusual sound.</p>
+          <div class="score-meter" aria-hidden="true">
+            <div id="score-fill"></div>
+            <span id="limit-marker" hidden></span>
+          </div>
+          <div class="meter-labels caption mono"><span>0</span><span id="meter-max">—</span></div>
+          <hr>
+          <div class="limit-heading">
+            <label for="limit">Alert threshold</label>
+            <input id="limit" type="number" min="0" step="any" placeholder="Enter limit" disabled>
+          </div>
+          <p class="caption" id="limit-help">An alert is raised when the score reaches the threshold.</p>
+          <div class="ground-truth">
+            <span>Known condition</span>
+            <strong id="known-label">—</strong>
+          </div>
+        </article>
+      </div>
+
+      <article class="panel history-panel">
+        <div class="panel-heading">
+          <div><h3>Inspection log</h3><p class="caption">Select a recorded event to listen again.</p></div>
+          <span class="caption mono" id="event-count">0 events</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Time</th><th>Machine</th><th>Recording</th><th>Score</th><th>Decision</th><th>Known condition</th></tr></thead>
+            <tbody id="event-rows"><tr><td colspan="6" class="empty">Run an inspection or replay a shift to populate the log.</td></tr></tbody>
+          </table>
+        </div>
+      </article>
+    </section>
+
+    <section id="evaluation-view" aria-labelledby="evaluation-heading" hidden>
+      <div class="section-heading">
+        <h2 id="evaluation-heading">Test set evaluation</h2>
+        <a id="download" class="button secondary" href="/api/evaluation.csv" hidden>Download scores <span aria-hidden="true">↓</span></a>
+      </div>
+      <p class="notice" id="evaluation-message" hidden></p>
+      <div class="evaluation-grid">
+        <article class="panel">
+          <div class="panel-heading"><h3>Performance by machine</h3></div>
+          <p class="caption">ROC AUC measures how well scores separate normal and anomalous clips. Partial AUC focuses on false-alarm rates up to 10%.</p>
+          <div class="legend"><span><i class="amber"></i>ROC AUC</span><span><i class="muted-orange"></i>Partial AUC</span></div>
+          <div class="bars" id="metric-bars"></div>
+        </article>
+        <article class="panel">
+          <div class="panel-heading histogram-heading">
+            <h3>Score distribution</h3>
+            <label>Machine ID<select id="evaluation-machine"></select></label>
+          </div>
+          <p class="caption">Overlap shows where a score threshold may miss a fault or raise a false alarm.</p>
+          <div class="legend"><span><i class="green"></i>Normal</span><span><i class="amber"></i>Anomaly</span><span><i class="line"></i>Demo limit</span></div>
+          <canvas id="distribution" role="img" aria-label="Histogram of saved normal and anomalous scores"></canvas>
+          <p id="distribution-caption" class="caption"></p>
+        </article>
+      </div>
+    </section>
+    <footer><span>MLPerf Tiny · ToyCar test recordings</span><span>Local simulation</span></footer>
+  </main>
+</body>
+</html>

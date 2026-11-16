@@ -1,0 +1,5 @@
+_target_: machine_audio_ad.dashboard.serve_dashboard
+model_path: ${paths.official_checkpoint}
+recordings_dir: dev_data/ToyCar/test
+scores_path: results/toycar-scores.csv
+port: 7860

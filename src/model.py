@@ -39,11 +39,15 @@ def load_autoencoder(path: Path) -> keras.Model:
     return model
 
 
+def reconstruction_errors(model: keras.Model, features: np.ndarray) -> np.ndarray:
+    """Return the mean squared reconstruction error for each feature window."""
+    reconstruction = model.predict(features, verbose=0)
+    return np.mean(np.square(features - reconstruction), axis=1)
+
+
 def reconstruction_score(model: keras.Model, features: np.ndarray) -> float:
     """Average squared reconstruction error across features, then across windows."""
-    reconstruction = model.predict(features, verbose=0)
-    window_errors = np.mean(np.square(features - reconstruction), axis=1)
-    return float(np.mean(window_errors))
+    return float(np.mean(reconstruction_errors(model, features)))
 
 
 def describe_model() -> None:

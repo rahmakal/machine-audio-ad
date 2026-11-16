@@ -23,7 +23,7 @@ to install the package and its Hydra dependency.
 ```text
 main.py                       Hydra entry point
 configs/config.yaml           Default task and shared checkpoint paths
-configs/task/                 Prediction, training, evaluation, and inspection settings
+configs/task/                 Prediction, training, evaluation, inspection, and dashboard settings
 src/
     __init__.py               Package marker
     features.py               WAV decoding and reference log-mel features
@@ -31,11 +31,35 @@ src/
     prediction.py             Single-WAV prediction
     training.py               Training and validation-based checkpoint selection
     evaluation.py             ToyCar test-set scoring and metrics
+    dashboard.py              Local monitoring dashboard and audio API
+    static/                   Dashboard assets
 ```
 
 Select a task with `task=...` and override settings with `task.setting=value`.
 Use `--cfg job` to inspect the composed configuration without running the task.
 Hydra saves each run's configuration and overrides under `outputs/`.
+
+## Dashboard
+
+Activate the named Conda environment and run this from the repository root.
+Open [the dashboard on localhost](http://127.0.0.1:7860) in your browser.
+
+```bash
+conda activate machine-audio-ad
+python main.py task=dashboard
+```
+
+Pick a machine and recording in **Monitor** to hear the clip, run the
+`ad01.h5` checkpoint, and inspect its reconstruction error over time. **Replay
+shift** scores six recorded clips in sequence and logs each decision alongside
+the known condition. The demo threshold starts at the selected machine's 90th
+percentile of saved normal test scores. You can edit it to explore how the
+decision changes.
+
+**Evaluation** reads `results/toycar-scores.csv` for per-machine metrics and
+score distributions. To create the CSV for the same checkpoint, run
+`python main.py task=evaluate task.model_path=checkpoints/ad01.h5` before
+starting the dashboard. Restart the dashboard to pick up newly saved scores.
 
 ## Score a recording
 

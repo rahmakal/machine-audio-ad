@@ -15,5 +15,8 @@ dynamic = ["dependencies"]
 packages = ["machine_audio_ad"]
 package-dir = {machine_audio_ad = "src"}
 
+[tool.setuptools.package-data]
+machine_audio_ad = ["static/*"]
+
 [tool.setuptools.dynamic]
 dependencies = {file = ["requirements.txt"]}
