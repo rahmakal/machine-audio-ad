@@ -1,0 +1,11 @@
+defaults:
+  - task: predict
+  - _self_
+
+paths:
+  official_checkpoint: checkpoints/ad01.h5
+  trained_checkpoint: checkpoints/toycar-best.keras
+
+hydra:
+  job:
+    chdir: false

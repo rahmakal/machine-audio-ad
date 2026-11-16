@@ -218,3 +218,14 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Local models and recordings
+/.conda-env/
+/checkpoints/
+/recordings/
+/dev_data/
+/eval_data/
+/results/
+/outputs/
+/multirun/
+*.[wW][aA][vV]

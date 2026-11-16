@@ -1,0 +1,5 @@
+_target_: machine_audio_ad.evaluation.evaluate
+model_path: ${paths.trained_checkpoint}
+test_dir: dev_data/ToyCar/test
+output: results/toycar-scores.csv
+max_fpr: 0.1

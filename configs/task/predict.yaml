@@ -1,0 +1,4 @@
+_target_: machine_audio_ad.prediction.predict
+model_path: ${paths.official_checkpoint}
+audio_path: ???
+threshold: null

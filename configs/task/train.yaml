@@ -1,0 +1,8 @@
+_target_: machine_audio_ad.training.train
+train_dirs:
+  - dev_data/ToyCar/train
+checkpoint: ${paths.trained_checkpoint}
+epochs: 100
+batch_size: 512
+validation_fraction: 0.1
+seed: 42
